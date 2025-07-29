@@ -20,6 +20,8 @@ pip install -r requirements.txt
 
 ### 2. Chạy ứng dụng
 ```bash
+python3 main.py export-current-results --output results.csv
+PYTHONPATH=. python3 src/utils/data_migration.py
 python app.py
 ```
 
