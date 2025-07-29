@@ -1,0 +1,90 @@
+[
+  {
+    "student_id": "STDA",
+    "student_name": "Student A",
+    "attendance": [
+      { "date": "2025-06-01", "status": "ATTEND" },
+      { "date": "2025-06-02", "status": "ATTEND" },
+      { "date": "2025-06-03", "status": "ABSENT" },
+      { "date": "2025-06-04", "status": "ATTEND" },
+      { "date": "2025-06-05", "status": "ATTEND" },
+      { "date": "2025-06-06", "status": "ATTEND" },
+      { "date": "2025-06-07", "status": "ATTEND" },
+      { "date": "2025-06-08", "status": "ATTEND" },
+      { "date": "2025-06-09", "status": "ATTEND" },
+      { "date": "2025-06-10", "status": "ATTEND" },
+      { "date": "2025-06-11", "status": "ATTEND" },
+      { "date": "2025-06-12", "status": "ATTEND" },
+      { "date": "2025-06-13", "status": "ATTEND" },
+      { "date": "2025-06-14", "status": "ATTEND" },
+      { "date": "2025-06-15", "status": "ATTEND" },
+      { "date": "2025-06-16", "status": "ATTEND" }
+    ],
+    "assignments": [
+      { "date": "2025-06-01", "name": "HW 1", "submitted": true },
+      { "date": "2025-06-08", "name": "HW 2", "submitted": true }
+    ],
+    "contacts": []
+  },
+  {
+    "student_id": "STDB",
+    "student_name": "Student B",
+    "attendance": [
+      { "date": "2025-06-01", "status": "ATTEND" },
+      { "date": "2025-06-02", "status": "ABSENT" },
+      { "date": "2025-06-03", "status": "ATTEND" },
+      { "date": "2025-06-04", "status": "ABSENT" },
+      { "date": "2025-06-05", "status": "ATTEND" },
+      { "date": "2025-06-06", "status": "ABSENT" },
+      { "date": "2025-06-07", "status": "ATTEND" },
+      { "date": "2025-06-08", "status": "ABSENT" },
+      { "date": "2025-06-09", "status": "ATTEND" },
+      { "date": "2025-06-10", "status": "ATTEND" },
+      { "date": "2025-06-11", "status": "ATTEND" },
+      { "date": "2025-06-12", "status": "ABSENT" },
+      { "date": "2025-06-13", "status": "ABSENT" },
+      { "date": "2025-06-14", "status": "ABSENT" },
+      { "date": "2025-06-15", "status": "ATTEND" },
+      { "date": "2025-06-16", "status": "ATTEND" }
+    ],
+    "assignments": [
+      { "date": "2025-06-01", "name": "HW 1", "submitted": true },
+      { "date": "2025-06-08", "name": "HW 2", "submitted": false }
+    ],
+    "contacts": [
+      { "date": "2025-06-20", "status": "FAILED" },
+      { "date": "2025-06-22", "status": "FAILED" }
+    ]
+  },
+  {
+    "student_id": "STDC",
+    "student_name": "Student C",
+    "attendance": [
+      { "date": "2025-06-01", "status": "ABSENT" },
+      { "date": "2025-06-02", "status": "ATTEND" },
+      { "date": "2025-06-03", "status": "ATTEND" },
+      { "date": "2025-06-04", "status": "ABSENT" },
+      { "date": "2025-06-05", "status": "ATTEND" },
+      { "date": "2025-06-06", "status": "ATTEND" },
+      { "date": "2025-06-07", "status": "ATTEND" },
+      { "date": "2025-06-08", "status": "ABSENT" },
+      { "date": "2025-06-09", "status": "ATTEND" },
+      { "date": "2025-06-10", "status": "ABSENT" },
+      { "date": "2025-06-11", "status": "ATTEND" },
+      { "date": "2025-06-12", "status": "ABSENT" },
+      { "date": "2025-06-13", "status": "ATTEND" },
+      { "date": "2025-06-14", "status": "ATTEND" },
+      { "date": "2025-06-15", "status": "ATTEND" },
+      { "date": "2025-06-16", "status": "ATTEND" }
+    ],
+    "assignments": [
+      { "date": "2025-06-01", "name": "HW 1", "submitted": false },
+      { "date": "2025-06-08", "name": "HW 2", "submitted": false }
+    ],
+    "contacts": [
+      { "date": "2025-06-20", "status": "FAILED" },
+      { "date": "2025-06-22", "status": "FAILED" },
+      { "date": "2025-06-24", "status": "FAILED" }
+    ]
+  }
+] 

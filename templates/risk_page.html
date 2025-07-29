@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if risk_level == "HIGH" %}
+        Sinh viên có rủi ro cao
+    {% else %}
+        Sinh viên có rủi ro trung bình
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        {% if risk_level == "HIGH" %}
+            <i class="fas fa-exclamation-triangle text-danger"></i> Sinh viên có rủi ro cao
+        {% else %}
+            <i class="fas fa-exclamation-circle text-warning"></i> Sinh viên có rủi ro trung bình
+        {% endif %}
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="/students" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-users"></i> Tất cả sinh viên
+            </a>
+            {% if risk_level == "HIGH" %}
+            <a href="/risk/medium" class="btn btn-sm btn-outline-warning">
+                <i class="fas fa-exclamation-circle"></i> Rủi ro trung bình
+            </a>
+            {% else %}
+            <a href="/risk/high" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-exclamation-triangle"></i> Rủi ro cao
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if risk_evaluations %}
+<div class="row">
+    {% for evaluation in risk_evaluations %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card risk-card {{ risk_level.lower() }}">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user-graduate"></i> 
+                    {% if evaluation.student %}
+                        {{ evaluation.student.student_name }}
+                    {% else %}
+                        Sinh viên #{{ evaluation.student_id }}
+                    {% endif %}
+                </h5>
+                <p class="card-text">
+                    <strong>Mã SV:</strong> 
+                    {% if evaluation.student %}
+                        {{ evaluation.student.student_id }}
+                    {% else %}
+                        #{{ evaluation.student_id }}
+                    {% endif %}<br>
+                    <strong>Điểm số:</strong> {{ evaluation.score }}/5<br>
+                    <strong>Mức rủi ro:</strong> 
+                    <span class="risk-{{ evaluation.risk_level.lower() }}">
+                        {{ evaluation.risk_level }}
+                    </span><br>
+                    <strong>Ngày đánh giá:</strong> {{ evaluation.evaluated_at.strftime('%d/%m/%Y %H:%M') }}
+                </p>
+                {% if evaluation.student %}
+                <a href="/students/{{ evaluation.student.student_id }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-eye"></i> Xem chi tiết
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> 
+    {% if risk_level == "HIGH" %}
+        Không có sinh viên nào có rủi ro cao.
+    {% else %}
+        Không có sinh viên nào có rủi ro trung bình.
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Cấu hình hệ thống{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-cog"></i> Cấu hình hệ thống
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button onclick="resetConfig()" class="btn btn-sm btn-outline-warning">
+            <i class="fas fa-undo"></i> Reset mặc định
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="config-panel">
+            <form id="configForm">
+                <h5 class="mb-3">Ngưỡng rủi ro</h5>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="lowThreshold" class="form-label">Ngưỡng rủi ro thấp</label>
+                        <input type="number" class="form-control" id="lowThreshold" min="0" max="5" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="mediumThreshold" class="form-label">Ngưỡng rủi ro trung bình</label>
+                        <input type="number" class="form-control" id="mediumThreshold" min="0" max="5" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="highThreshold" class="form-label">Ngưỡng rủi ro cao</label>
+                        <input type="number" class="form-control" id="highThreshold" min="0" max="5" required>
+                    </div>
+                </div>
+                
+                <h5 class="mb-3">Cấu hình giao diện</h5>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="refreshInterval" class="form-label">Thời gian tự động refresh (giây)</label>
+                        <input type="number" class="form-control" id="refreshInterval" min="10" max="300" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="maxStudentsPerPage" class="form-label">Số sinh viên tối đa mỗi trang</label>
+                        <input type="number" class="form-control" id="maxStudentsPerPage" min="5" max="100" required>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="enableNotifications">
+                        <label class="form-check-label" for="enableNotifications">
+                            Bật thông báo
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Lưu cấu hình
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Thông tin</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Ngưỡng rủi ro:</strong> Xác định điểm số để phân loại mức rủi ro</p>
+                <p><strong>Tự động refresh:</strong> Thời gian tự động cập nhật dữ liệu</p>
+                <p><strong>Số sinh viên mỗi trang:</strong> Giới hạn hiển thị để tối ưu hiệu suất</p>
+                <p><strong>Thông báo:</strong> Hiển thị thông báo khi có thay đổi</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load current config
+function loadConfig() {
+    makeRequest('/api/config')
+        .then(data => {
+            const config = data.config;
+            
+            // Set form values
+            document.getElementById('lowThreshold').value = config.risk_thresholds.low_threshold;
+            document.getElementById('mediumThreshold').value = config.risk_thresholds.medium_threshold;
+            document.getElementById('highThreshold').value = config.risk_thresholds.high_threshold;
+            document.getElementById('refreshInterval').value = config.auto_refresh_interval;
+            document.getElementById('maxStudentsPerPage').value = config.max_students_per_page;
+            document.getElementById('enableNotifications').checked = config.enable_notifications;
+        })
+        .catch(error => {
+            console.error('Error loading config:', error);
+            showAlert('Không thể tải cấu hình', 'danger');
+        });
+}
+
+// Save config
+document.getElementById('configForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const configData = {
+        risk_thresholds: {
+            low_threshold: parseInt(document.getElementById('lowThreshold').value),
+            medium_threshold: parseInt(document.getElementById('mediumThreshold').value),
+            high_threshold: parseInt(document.getElementById('highThreshold').value)
+        },
+        auto_refresh_interval: parseInt(document.getElementById('refreshInterval').value),
+        max_students_per_page: parseInt(document.getElementById('maxStudentsPerPage').value),
+        enable_notifications: document.getElementById('enableNotifications').checked
+    };
+    
+    makeRequest('/api/config', {
+        method: 'PUT',
+        body: JSON.stringify(configData)
+    })
+    .then(data => {
+        showAlert('Cấu hình đã được lưu thành công', 'success');
+    })
+    .catch(error => {
+        console.error('Error saving config:', error);
+        showAlert('Không thể lưu cấu hình', 'danger');
+    });
+});
+
+// Reset config
+function resetConfig() {
+    if (confirm('Bạn có chắc muốn reset về cấu hình mặc định?')) {
+        makeRequest('/api/config/reset', {
+            method: 'POST'
+        })
+        .then(data => {
+            showAlert('Cấu hình đã được reset', 'success');
+            loadConfig(); // Reload form
+        })
+        .catch(error => {
+            console.error('Error resetting config:', error);
+            showAlert('Không thể reset cấu hình', 'danger');
+        });
+    }
+}
+
+// Load config when page loads
+document.addEventListener('DOMContentLoaded', loadConfig);
+</script>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Hệ thống đánh giá rủi ro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button onclick="refreshDashboard()" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-sync-alt"></i> Làm mới
+        </button>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary" id="totalStudents">-</h3>
+                <p class="card-text">Tổng sinh viên</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-danger" id="highRiskCount">-</h3>
+                <p class="card-text">Rủi ro cao</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning" id="mediumRiskCount">-</h3>
+                <p class="card-text">Rủi ro trung bình</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success" id="lowRiskCount">-</h3>
+                <p class="card-text">Rủi ro thấp</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Phân bố rủi ro</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="riskChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Xu hướng rủi ro</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="trendChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent High Risk Students -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Sinh viên rủi ro cao gần đây</h5>
+            </div>
+            <div class="card-body">
+                <div id="recentHighRiskStudents">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load dashboard data
+function loadDashboardData() {
+    // Load statistics
+    makeRequest('/api/dashboard/stats')
+        .then(data => {
+            document.getElementById('totalStudents').textContent = data.total_students;
+            document.getElementById('highRiskCount').textContent = data.high_risk_count;
+            document.getElementById('mediumRiskCount').textContent = data.medium_risk_count;
+            document.getElementById('lowRiskCount').textContent = data.low_risk_count;
+            
+            // Create risk distribution chart
+            createRiskChart(data.risk_distribution);
+        })
+        .catch(error => {
+            console.error('Error loading dashboard stats:', error);
+        });
+    
+    // Load recent high risk students
+    makeRequest('/api/risk/high-risk-students')
+        .then(data => {
+            displayRecentHighRiskStudents(data.slice(0, 5));
+        })
+        .catch(error => {
+            console.error('Error loading high risk students:', error);
+        });
+}
+
+function createRiskChart(data) {
+    const ctx = document.getElementById('riskChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Thấp', 'Trung bình', 'Cao'],
+            datasets: [{
+                data: [data.low, data.medium, data.high],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(220, 53, 69, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function displayRecentHighRiskStudents(students) {
+    const container = document.getElementById('recentHighRiskStudents');
+    
+    if (students.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center">Không có sinh viên rủi ro cao</p>';
+        return;
+    }
+    
+    const html = students.map(student => `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong>${student.student_name}</strong> (${student.student_id})
+                <br><small class="text-muted">Điểm: ${student.score}/5</small>
+            </div>
+            <a href="/students/${student.student_id}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-eye"></i> Xem
+            </a>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+function refreshDashboard() {
+    loadDashboardData();
+    showAlert('Dashboard đã được làm mới', 'success');
+}
+
+// Load data when page loads
+document.addEventListener('DOMContentLoaded', loadDashboardData);
+</script>
+{% endblock %}

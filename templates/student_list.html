@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Danh sách sinh viên{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-users"></i> Danh sách sinh viên
+    </h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <button onclick="refreshStudents()" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-sync-alt"></i> Làm mới
+                    </button>
+                    <button onclick="exportToCSV()" class="btn btn-sm btn-success">
+                        <i class="fas fa-download"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+</div>
+
+<!-- Filter and Sort Controls -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="riskFilter" class="form-label">Lọc theo rủi ro</label>
+                        <select class="form-select" id="riskFilter" onchange="applyFilters()">
+                            <option value="">Tất cả</option>
+                            <option value="HIGH">Rủi ro cao</option>
+                            <option value="MEDIUM">Rủi ro trung bình</option>
+                            <option value="LOW">Rủi ro thấp</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="sortBy" class="form-label">Sắp xếp theo</label>
+                        <select class="form-select" id="sortBy" onchange="applyFilters()">
+                            <option value="student_id">Mã sinh viên</option>
+                            <option value="student_name">Tên sinh viên</option>
+                            <option value="risk_level">Mức rủi ro</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="sortOrder" class="form-label">Thứ tự</label>
+                        <select class="form-select" id="sortOrder" onchange="applyFilters()">
+                            <option value="asc">Tăng dần</option>
+                            <option value="desc">Giảm dần</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="pageSize" class="form-label">Số lượng</label>
+                        <select class="form-select" id="pageSize" onchange="applyFilters()">
+                            <option value="10">10</option>
+                            <option value="20" selected>20</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <button onclick="clearFilters()" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-times"></i> Xóa bộ lọc
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Students List -->
+<div id="studentsContainer">
+    <div class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <nav aria-label="Student pagination">
+            <ul class="pagination justify-content-center" id="pagination">
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<script>
+let currentPage = 1;
+let totalPages = 1;
+
+// Load students with filters
+function loadStudents(page = 1) {
+    currentPage = page;
+    
+    const riskFilter = document.getElementById('riskFilter').value;
+    const sortBy = document.getElementById('sortBy').value;
+    const sortOrder = document.getElementById('sortOrder').value;
+    const pageSize = document.getElementById('pageSize').value;
+    
+    const params = new URLSearchParams({
+        page: page,
+        limit: pageSize,
+        sort_by: sortBy,
+        sort_order: sortOrder
+    });
+    
+    if (riskFilter) {
+        params.append('risk_level', riskFilter);
+    }
+    
+    makeRequest(`/api/students/?${params.toString()}`)
+        .then(students => {
+            displayStudents(students);
+            updatePagination();
+        })
+        .catch(error => {
+            console.error('Error loading students:', error);
+            showAlert('Không thể tải danh sách sinh viên', 'danger');
+        });
+}
+
+function displayStudents(students) {
+    const container = document.getElementById('studentsContainer');
+    
+    if (students.length === 0) {
+        container.innerHTML = `
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle"></i> Không tìm thấy sinh viên nào phù hợp với bộ lọc.
+            </div>
+        `;
+        return;
+    }
+    
+    const html = `
+        <div class="row">
+            ${students.map(student => `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-user-graduate"></i> ${student.student_name}
+                            </h5>
+                            <p class="card-text">
+                                <strong>Mã SV:</strong> ${student.student_id}<br>
+                                <strong>Ngày tạo:</strong> ${new Date(student.created_at).toLocaleDateString('vi-VN')}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="/students/${student.student_id}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-eye"></i> Xem chi tiết
+                                </a>
+                                <button onclick="predictRisk('${student.student_id}')" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-calculator"></i> Đánh giá rủi ro
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+function updatePagination() {
+    const pagination = document.getElementById('pagination');
+    const pageSize = parseInt(document.getElementById('pageSize').value);
+    
+    // Calculate total pages (simplified - in real app you'd get this from API)
+    totalPages = Math.ceil(20 / pageSize); // Assuming 20 students total for demo
+    
+    let paginationHtml = '';
+    
+    // Previous button
+    paginationHtml += `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="loadStudents(${currentPage - 1})">Trước</a>
+        </li>
+    `;
+    
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        paginationHtml += `
+            <li class="page-item ${currentPage === i ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="loadStudents(${i})">${i}</a>
+            </li>
+        `;
+    }
+    
+    // Next button
+    paginationHtml += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="loadStudents(${currentPage + 1})">Sau</a>
+        </li>
+    `;
+    
+    pagination.innerHTML = paginationHtml;
+}
+
+function applyFilters() {
+    loadStudents(1); // Reset to first page
+}
+
+function clearFilters() {
+    document.getElementById('riskFilter').value = '';
+    document.getElementById('sortBy').value = 'student_id';
+    document.getElementById('sortOrder').value = 'asc';
+    document.getElementById('pageSize').value = '20';
+    loadStudents(1);
+}
+
+function refreshStudents() {
+    loadStudents(currentPage);
+    showAlert('Danh sách sinh viên đã được làm mới', 'success');
+}
+
+function predictRisk(studentId) {
+    makeRequest(`/api/students/${studentId}/predict-risk`, {
+        method: 'POST'
+    })
+    .then(data => {
+        showAlert(`Đánh giá rủi ro hoàn thành! Mức rủi ro: ${data.risk_level}`, 'success');
+        refreshStudents(); // Reload to show updated risk
+    })
+    .catch(error => {
+        console.error('Error predicting risk:', error);
+        showAlert('Không thể đánh giá rủi ro', 'danger');
+    });
+}
+
+function exportToCSV() {
+    // Tạo link download
+    const link = document.createElement('a');
+    link.href = '/api/export/csv';
+    link.download = `results_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showAlert('Đang tải file CSV...', 'info');
+}
+
+// Load students when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    loadStudents(1);
+});
+</script>
+{% endblock %}

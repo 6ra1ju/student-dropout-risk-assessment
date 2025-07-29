@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}{{ student.student_name }} - Chi tiết{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-user-graduate"></i> {{ student.student_name }}
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="/students" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+            <button onclick="predictRisk()" class="btn btn-sm btn-primary">
+                <i class="fas fa-calculator"></i> Đánh giá rủi ro
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Thông tin cơ bản -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Thông tin cơ bản</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Mã sinh viên:</strong> {{ student.student_id }}</p>
+                <p><strong>Tên:</strong> {{ student.student_name }}</p>
+                <p><strong>Tỷ lệ điểm danh:</strong> {{ "%.1f"|format(attendance_rate) }}%</p>
+                <p><strong>Tỷ lệ nộp bài:</strong> {{ "%.1f"|format(submission_rate) }}%</p>
+                <p><strong>Liên lạc thất bại:</strong> {{ failed_contacts }} lần</p>
+            </div>
+        </div>
+
+        <!-- Rủi ro hiện tại -->
+        {% if latest_risk %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Rủi ro hiện tại</h5>
+            </div>
+            <div class="card-body">
+                <div class="risk-card {{ latest_risk.risk_level.lower() }}">
+                    <h4 class="risk-{{ latest_risk.risk_level.lower() }}">
+                        {{ latest_risk.risk_level }}
+                    </h4>
+                    <p><strong>Điểm số:</strong> {{ latest_risk.score }}/5</p>
+                    <p><strong>Ngày đánh giá:</strong> {{ latest_risk.evaluated_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Biểu đồ và thống kê -->
+    <div class="col-md-8">
+        <!-- Biểu đồ điểm danh -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Biểu đồ điểm danh</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="attendanceChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Lịch sử đánh giá rủi ro -->
+        {% if risk_evaluations %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Lịch sử đánh giá rủi ro</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Điểm số</th>
+                                <th>Mức rủi ro</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for evaluation in risk_evaluations %}
+                            <tr>
+                                <td>{{ evaluation.evaluated_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ evaluation.score }}/5</td>
+                                <td>
+                                    <span class="risk-{{ evaluation.risk_level.lower() }}">
+                                        {{ evaluation.risk_level }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function predictRisk() {
+    makeRequest('/api/students/{{ student.student_id }}/predict-risk', {
+        method: 'POST'
+    })
+    .then(data => {
+        showAlert('Đánh giá rủi ro hoàn thành! Mức rủi ro: ' + data.risk_level, 'success');
+        location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Có lỗi xảy ra khi đánh giá rủi ro', 'danger');
+    });
+}
+
+// Biểu đồ điểm danh
+const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+new Chart(attendanceCtx, {
+    type: 'line',
+    data: {
+        labels: {{ attendance_dates | tojson }},
+        datasets: [{
+            label: 'Điểm danh',
+            data: {{ attendance_data | tojson }},
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 1,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
