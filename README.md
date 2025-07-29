@@ -1,8 +1,8 @@
-# 🎓 Student Dropout Risk Assessment System
+# Student Dropout Risk Assessment System
 
 Hệ thống đánh giá rủi ro bỏ học của sinh viên với giao diện web và API RESTful.
 
-## ✨ Tính năng chính
+## Tính năng chính
 
 - **📊 Dashboard** - Thống kê tổng quan với biểu đồ
 - **👥 Quản lý sinh viên** - CRUD sinh viên với sort/filter
@@ -11,7 +11,7 @@ Hệ thống đánh giá rủi ro bỏ học của sinh viên với giao diện 
 - **📈 Biểu đồ** - Visualize dữ liệu điểm danh và rủi ro
 - **🔍 Tìm kiếm & Lọc** - Sort/filter theo nhiều tiêu chí
 
-## 🚀 Cài đặt & Chạy
+## Cài đặt & Chạy
 
 ### 1. Cài đặt dependencies
 ```bash
@@ -50,7 +50,7 @@ ex1/
 └── data/              # Sample data
 ```
 
-## 🔧 API Endpoints
+## API Endpoints
 
 ### Students
 - `GET /api/students/` - Danh sách sinh viên (với sort/filter)
@@ -71,7 +71,7 @@ ex1/
 ### Dashboard
 - `GET /api/dashboard/stats` - Thống kê dashboard
 
-## 🎯 Query Parameters
+## Query Parameters
 
 ### Sort & Filter
 ```bash
@@ -81,11 +81,11 @@ GET /api/students/?risk_level=HIGH
 # Sort theo tên sinh viên
 GET /api/students/?sort_by=student_name&sort_order=asc
 
-# Pagination
+# Phân trang
 GET /api/students/?page=1&limit=20
 ```
 
-## 📊 Thuật toán đánh giá rủi ro
+## Thuật toán đánh giá rủi ro
 
 Hệ thống tính toán rủi ro dựa trên 3 yếu tố:
 
@@ -106,7 +106,3 @@ Hệ thống tính toán rủi ro dựa trên 3 yếu tố:
 - **Database:** SQLite
 - **Frontend:** Bootstrap, Chart.js, Jinja2
 - **CLI:** Typer, Rich
-
-## 📝 License
-
-MIT License 
